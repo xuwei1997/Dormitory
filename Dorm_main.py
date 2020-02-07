@@ -29,15 +29,21 @@ def search(a, L):
 
 
 # 贪心算法宿舍分配
-def distribution(df_s, df_d):
+def distribution(df_s, df_d, name_end):
     i = 0
+
     #创建一个空的dataframe
     df_s_New = pd.DataFrame(columns=[
         'sName', 'sID', 'sSex', 'sGrade', 'sClass', 'sTypes', 'sClassID',
         'sDorm'
     ])
-    print(df_s_New)
-    while df_s.shape[0] != 0 or df_d.shape[0] != 0:
+    # print(df_s_New)
+
+    while df_s.shape[0] != 0 and df_d.shape[0] != 0:
+        #输出序号
+        i = i + 1
+        print('分配次数：' + str(i))
+
         # 宿舍空余床位从小到大排序
         df_d = df_d.sort_values(['dMax']).reset_index(drop=True)
 
@@ -48,23 +54,27 @@ def distribution(df_s, df_d):
         sClassID = sClassID[0][0]
         # dMax=df_d['dMax'][-1:].values
         # sClassID = df_s['sClass'][0]
-        # print(dMax)
-        # print(sClassID)
+        print(dMax)
+        print(sClassID)
         sPeople = df_s[df_s.sClassID == sClassID].shape[0]  # 首个班级人数
-        # print(sPeople)
+        print(sPeople)
 
         # 将大于房间最大人数的班级分块
         if sPeople > dMax:
-            df_s['sClassID'][0:dMax] = df_s['sClassID'][0:dMax] + 1
+            # df_s['sClassID'][0:dMax] = df_s['sClassID'][0:dMax] + 1
+            # print(df_s.ix[0:dMax-1,'sClassID'])
+            df_s.ix[0:dMax - 1,
+                    'sClassID'] = df_s.ix[0:dMax - 1, 'sClassID'] + 1
             # print(sPeople)
-            print('segmentation')
-            # print(df_s['sClassID'][0:dMax])
+            print('segmentation!!!!!!!')
+            # print(df_s)
             continue
 
+        print('12324325345436456457')
         # 找出分配位置的索引
         list1 = df_d['dMax'].values
         k = search(sPeople, list1)
-        print(k)
+        # print(k)
         # 向df_s记录宿舍
         df_s['sDorm'][df_s.sClassID == sClassID] = df_d['dID'][k]
         # 向df_s_New输出宿舍
@@ -72,14 +82,32 @@ def distribution(df_s, df_d):
                                    ignore_index=True)
         # 删除已输出宿舍
         df_s.drop(range(0, sPeople), inplace=True)
-        print(df_s_New)
-        print(df_s)
-        i = i + 1
-        if i == 1:
-            break
+        df_s = df_s.reset_index(drop=True)
+        # print(df_s_New)
+        # print(df_s)
+
+        # 宿舍dMax减去对应的sPeople
+        # print(df_d)
+        df_d.ix[k, ['dMax']] = df_d.ix[k, ['dMax']] - sPeople
+        dMax_end = df_d.ix[k, ['dMax']].values
+        # print(df_s.shape[0])
+        if dMax_end == 0:
+            df_d = df_d.drop(k)
+            df_d = df_d.reset_index(drop=True)
+
+    print(df_s)
+    print(df_s_New)
+    print(df_d)
+
+    df_s.to_csv('qqq.csv')
+    df_s_New.to_excel('www.xlsx')
+    df_d.to_excel('eee.xlsx')
+        # i = i + 1
+        # if i == 3:
+        #     break
 
 
 if __name__ == "__main__":
-    distribution(df_stu_M, df_dor_M)
+    distribution(df_stu_M, df_dor_M, 'M')
     # L = [1, 2, 4, 6, 8, 10]
     # print(search(4, L))
