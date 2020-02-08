@@ -10,6 +10,7 @@ df_dor = pd.read_excel('ss.xlsx')
 df_stu[
     'sClassID'] = df_stu['sGrade'] * 1000 + df_stu['sClass'] * 10  # 给每个班一个唯一标记
 df_stu['sDorm'] = np.NaN  # 加一列宿舍设为空
+df_stu['sDormNum'] = np.NaN # 加一列宿舍楼栋号设为空
 # print(df_stu)
 
 # 分男女
@@ -54,10 +55,10 @@ def distribution(df_s, df_d, name_end):
         sClassID = sClassID[0][0]
         # dMax=df_d['dMax'][-1:].values
         # sClassID = df_s['sClass'][0]
-        print(dMax)
-        print(sClassID)
+        # print(dMax)
+        print('当前班级序号：'+str(sClassID))
         sPeople = df_s[df_s.sClassID == sClassID].shape[0]  # 首个班级人数
-        print(sPeople)
+        print('当前班级人数：'+str(sPeople))
 
         # 将大于房间最大人数的班级分块
         if sPeople > dMax:
@@ -74,9 +75,13 @@ def distribution(df_s, df_d, name_end):
         # 找出分配位置的索引
         list1 = df_d['dMax'].values
         k = search(sPeople, list1)
-        # print(k)
-        # 向df_s记录宿舍
-        df_s['sDorm'][df_s.sClassID == sClassID] = df_d['dID'][k]
+
+        # 向df_s记录宿舍与宿舍楼栋号
+        # df_s['sDorm'][df_s.sClassID == sClassID] = df_d['dID'][k]
+        df_s.loc[df_s.sClassID == sClassID,'sDorm'] = df_d.ix[k,'dID']
+        df_s.loc[df_s.sClassID == sClassID,'sDormNum'] = df_d.ix[k,'dNum']
+        print(df_s)
+
         # 向df_s_New输出宿舍
         df_s_New = df_s_New.append(df_s[df_s.sClassID == sClassID],
                                    ignore_index=True)
@@ -90,22 +95,24 @@ def distribution(df_s, df_d, name_end):
         # print(df_d)
         df_d.ix[k, ['dMax']] = df_d.ix[k, ['dMax']] - sPeople
         dMax_end = df_d.ix[k, ['dMax']].values
-        # print(df_s.shape[0])
+
+        # 如果宿舍空，从表中删除宿舍
         if dMax_end == 0:
             df_d = df_d.drop(k)
             df_d = df_d.reset_index(drop=True)
+
+        # # i = i + 1
+        # if i >2:
+        #     break
 
     print(df_s)
     print(df_s_New)
     print(df_d)
 
-    df_s.to_csv('qqq.csv')
+    df_s.to_csv('qqq.xlsx')
     df_s_New.to_excel('www.xlsx')
     df_d.to_excel('eee.xlsx')
-        # i = i + 1
-        # if i == 3:
-        #     break
-
+        
 
 if __name__ == "__main__":
     distribution(df_stu_M, df_dor_M, 'M')
