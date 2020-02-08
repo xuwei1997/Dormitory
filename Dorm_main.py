@@ -4,23 +4,6 @@
 import pandas as pd
 import numpy as np
 
-# 传入excel数据
-df_stu = pd.read_excel('xs.xlsx')
-df_dor = pd.read_excel('ss.xlsx')
-df_stu[
-    'sClassID'] = df_stu['sGrade'] * 1000 + df_stu['sClass'] * 10  # 给每个班一个唯一标记
-df_stu['sDorm'] = np.NaN  # 加一列宿舍设为空
-df_stu['sDormNum'] = np.NaN # 加一列宿舍楼栋号设为空
-# print(df_stu)
-
-# 分男女
-df_stu_M = df_stu[df_stu.sSex == 1].reset_index(drop=True)
-df_stu_F = df_stu[df_stu.sSex == 2].reset_index(drop=True)
-df_dor_M = df_dor[df_dor.dSex == 1].reset_index(drop=True)
-df_dor_F = df_dor[df_dor.dSex == 2].reset_index(drop=True)
-
-# print(df_stu_F)
-
 
 # 查找一个大于a的最小值索引值
 def search(a, L):
@@ -32,33 +15,31 @@ def search(a, L):
 # 贪心算法宿舍分配
 def distribution(df_s, df_d, name_end):
     i = 0
-
-    #创建一个空的dataframe
+    print('当前分配：' + name_end)
+    # 创建一个空的dataframe
     df_s_New = pd.DataFrame(columns=[
         'sName', 'sID', 'sSex', 'sGrade', 'sClass', 'sTypes', 'sClassID',
         'sDorm'
     ])
-    # print(df_s_New)
 
     while df_s.shape[0] != 0 and df_d.shape[0] != 0:
-        #输出序号
+        # 输出序号
         i = i + 1
         print('分配次数：' + str(i))
 
         # 宿舍空余床位从小到大排序
         df_d = df_d.sort_values(['dMax']).reset_index(drop=True)
 
-        #提取一些值
+        # 提取一些值
         dMax = df_d.loc[:, ['dMax']][-1:].values  # 取最大值
         sClassID = df_s.ix[:0, ['sClassID']].values  # 取当前班级
         dMax = dMax[0][0]
         sClassID = sClassID[0][0]
         # dMax=df_d['dMax'][-1:].values
         # sClassID = df_s['sClass'][0]
-        # print(dMax)
-        print('当前班级序号：'+str(sClassID))
+        print('当前班级序号：' + str(sClassID))
         sPeople = df_s[df_s.sClassID == sClassID].shape[0]  # 首个班级人数
-        print('当前班级人数：'+str(sPeople))
+        print('当前班级人数：' + str(sPeople))
 
         # 将大于房间最大人数的班级分块
         if sPeople > dMax:
@@ -66,25 +47,22 @@ def distribution(df_s, df_d, name_end):
             # print(df_s.ix[0:dMax-1,'sClassID'])
             df_s.ix[0:dMax - 1,
                     'sClassID'] = df_s.ix[0:dMax - 1, 'sClassID'] + 1
-            # print(sPeople)
             print('segmentation!!!!!!!')
-            # print(df_s)
             continue
 
-        print('12324325345436456457')
         # 找出分配位置的索引
         list1 = df_d['dMax'].values
         k = search(sPeople, list1)
 
         # 向df_s记录宿舍与宿舍楼栋号
         # df_s['sDorm'][df_s.sClassID == sClassID] = df_d['dID'][k]
-        df_s.loc[df_s.sClassID == sClassID,'sDorm'] = df_d.ix[k,'dID']
-        df_s.loc[df_s.sClassID == sClassID,'sDormNum'] = df_d.ix[k,'dNum']
-        print(df_s)
+        df_s.loc[df_s.sClassID == sClassID, 'sDorm'] = df_d.ix[k, 'dID']
+        df_s.loc[df_s.sClassID == sClassID, 'sDormNum'] = df_d.ix[k, 'dNum']
 
         # 向df_s_New输出宿舍
         df_s_New = df_s_New.append(df_s[df_s.sClassID == sClassID],
                                    ignore_index=True)
+
         # 删除已输出宿舍
         df_s.drop(range(0, sPeople), inplace=True)
         df_s = df_s.reset_index(drop=True)
@@ -92,7 +70,6 @@ def distribution(df_s, df_d, name_end):
         # print(df_s)
 
         # 宿舍dMax减去对应的sPeople
-        # print(df_d)
         df_d.ix[k, ['dMax']] = df_d.ix[k, ['dMax']] - sPeople
         dMax_end = df_d.ix[k, ['dMax']].values
 
@@ -101,20 +78,32 @@ def distribution(df_s, df_d, name_end):
             df_d = df_d.drop(k)
             df_d = df_d.reset_index(drop=True)
 
-        # # i = i + 1
-        # if i >2:
-        #     break
+    dnew = [
+        'sName', 'sID', 'sSex', 'sGrade', 'sClass', 'sTypes', 'sClassID',
+        'sDorm'
+    ]
+    df_s_New = df_s_New[dnew]
 
-    print(df_s)
-    print(df_s_New)
-    print(df_d)
+    df_s.to_excel('weifenpei_' + name_end + '.xlsx')
+    df_s_New.to_excel('yifenpei_' + name_end + '.xlsx')
+    df_d.to_excel('shengyusushe_' + name_end + '.xlsx')
 
-    df_s.to_csv('qqq.xlsx')
-    df_s_New.to_excel('www.xlsx')
-    df_d.to_excel('eee.xlsx')
-        
 
 if __name__ == "__main__":
+    # 传入excel数据
+    df_stu = pd.read_excel('xs.xlsx')
+    df_dor = pd.read_excel('ss.xlsx')
+    df_stu['sClassID'] = df_stu['sGrade'] * 1000 + df_stu[
+        'sClass'] * 10  # 给每个班一个唯一标记
+    df_stu['sDorm'] = np.NaN  # 加一列宿舍设为空
+    df_stu['sDormNum'] = np.NaN  # 加一列宿舍楼栋号设为空
+
+    # 分男女
+    df_stu_M = df_stu[df_stu.sSex == 1].reset_index(drop=True)
+    df_stu_F = df_stu[df_stu.sSex == 2].reset_index(drop=True)
+    df_dor_M = df_dor[df_dor.dSex == 1].reset_index(drop=True)
+    df_dor_F = df_dor[df_dor.dSex == 2].reset_index(drop=True)
+
+    # 分配
     distribution(df_stu_M, df_dor_M, 'M')
-    # L = [1, 2, 4, 6, 8, 10]
-    # print(search(4, L))
+    distribution(df_stu_F, df_dor_F, 'F')
