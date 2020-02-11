@@ -3,6 +3,7 @@
 
 import pandas as pd
 import numpy as np
+from time import sleep
 
 
 # 查找一个大于a的最小值索引值
@@ -90,6 +91,17 @@ def distribution(df_s, df_d, name_end):
 
 
 if __name__ == "__main__":
+    # 开头
+    print('湛江市第五中学宿舍分配系统')
+    sleep(0.5)
+    print('作者：许巍')
+    sleep(0.5)
+    print('2020-02')
+    print('........................................')
+    sleep(0.5)
+    sKind = input('请输入数字选择分配学生类型（0-全部；1-仅全宿,2-仅半宿）:')
+    print('........................................')
+
     # 传入excel数据
     df_stu = pd.read_excel('xs.xlsx')
     df_dor = pd.read_excel('ss.xlsx')
@@ -97,6 +109,12 @@ if __name__ == "__main__":
         'sClass'] * 10  # 给每个班一个唯一标记
     df_stu['sDorm'] = np.NaN  # 加一列宿舍设为空
     df_stu['sDormNum'] = np.NaN  # 加一列宿舍楼栋号设为空
+
+    # 选择全宿半宿
+    if sKind == '1':
+        df_stu = df_stu[df_stu.sTypes == 1]
+    elif sKind == '2':
+        df_stu = df_stu[df_stu.sTypes == 2]
 
     # 分男女
     df_stu_M = df_stu[df_stu.sSex == 1].reset_index(drop=True)
