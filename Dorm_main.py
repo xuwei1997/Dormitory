@@ -29,7 +29,8 @@ def distribution(df_s, df_d, name_end):
         print('分配次数：' + str(i))
 
         # 宿舍空余床位从小到大排序
-        df_d = df_d.sort_values(['dMax']).reset_index(drop=True)
+        index_list = ['dMax','dID']
+        df_d = df_d.sort_values(by=index_list).reset_index(drop=True)
 
         # 提取一些值
         dMax = df_d.loc[:, ['dMax']][-1:].values  # 取最大值
@@ -56,6 +57,7 @@ def distribution(df_s, df_d, name_end):
         k = search(sPeople, list1)
 
         # 向df_s记录宿舍与宿舍楼栋号
+        # 此处应该写入床位号！！！！
         # df_s['sDorm'][df_s.sClassID == sClassID] = df_d['dID'][k]
         df_s.loc[df_s.sClassID == sClassID, 'sDorm'] = df_d.ix[k, 'dID']
         df_s.loc[df_s.sClassID == sClassID, 'sDormNum'] = df_d.ix[k, 'dNum']
@@ -79,11 +81,18 @@ def distribution(df_s, df_d, name_end):
             df_d = df_d.drop(k)
             df_d = df_d.reset_index(drop=True)
 
+    #选出需要的列
     dnew = [
-        'sName', 'sID', 'sSex', 'sGrade', 'sClass', 'sTypes', 'sClassID',
-        'sDorm'
+        'sName', 'sID', 'sSex', 'sGrade', 'sClass', 'sTypes', 'sDorm',
+        'sDormNum'
     ]
     df_s_New = df_s_New[dnew]
+
+    #替换性别
+    df_s_New['sSex'].replace({1: '男', 2: '女'},inplace=True)
+    # print(df_s_New)
+    # 改成中文表头
+    df_s_New.columns = ['姓名', '学生编号', '性别', '年级', '班级', '类型', '宿舍号', '楼号']
 
     df_s.to_excel('weifenpei_' + name_end + '.xlsx')
     df_s_New.to_excel('yifenpei_' + name_end + '.xlsx')
@@ -93,12 +102,12 @@ def distribution(df_s, df_d, name_end):
 if __name__ == "__main__":
     # 开头
     print('湛江市第五中学宿舍分配系统')
-    sleep(0.5)
+    # sleep(0.5)
     print('作者：许巍')
-    sleep(0.5)
+    # sleep(0.5)
     print('2020-02')
     print('........................................')
-    sleep(0.5)
+    # sleep(0.5)
     sKind = input('请输入数字选择分配学生类型（0-全部；1-仅全宿,2-仅半宿）:')
     print('........................................')
 
@@ -121,6 +130,8 @@ if __name__ == "__main__":
     df_stu_F = df_stu[df_stu.sSex == 2].reset_index(drop=True)
     df_dor_M = df_dor[df_dor.dSex == 1].reset_index(drop=True)
     df_dor_F = df_dor[df_dor.dSex == 2].reset_index(drop=True)
+    # print(df_dor_F)
+    # print(df_dor_M)
 
     # 分配
     distribution(df_stu_M, df_dor_M, 'M')
